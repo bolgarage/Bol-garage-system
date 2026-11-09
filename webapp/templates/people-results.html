@@ -1,0 +1,47 @@
+<tbody id="people-results">
+  {% for account in accounts %}
+    <tr>
+      <td><strong>{{ account.get_full_name|default:account.username }}</strong></td>
+      <td>{{ account.email }}</td>
+      <td>{{ account.phone|default:"—" }}</td>
+      <td>
+        {% if account.is_active %}
+          <span class="pill pill-available">Active</span>
+        {% else %}
+          <span class="pill pill-closed">Inactive</span>
+        {% endif %}
+        {% if account.is_superuser %}<span class="pill pill-reserved">Superuser</span>{% endif %}
+      </td>
+      <td>{{ account.date_joined|date:"M j, Y" }}</td>
+      <td>
+        <div class="people-actions">
+          <a href="{% url 'webapp:account_edit' account.pk %}" class="link table-action">Edit</a>
+          {% if account.is_superuser %}
+            <span class="small-note">Protected</span>
+          {% elif account.pk == user.pk %}
+            <span class="small-note">Current account</span>
+          {% else %}
+            <form method="post" action="{% url 'webapp:account_toggle_active' account.pk %}"{% if account.is_active %} data-confirmation-form data-confirmation-title="Deactivate this account?" data-confirmation-message="This account will no longer be able to sign in. Its existing inquiries and account history will be kept, and you can reactivate it later."{% endif %}>
+              {% csrf_token %}
+              {% if account.is_active %}
+                <button type="submit" class="link table-action">Deactivate</button>
+              {% else %}
+                <button type="submit" class="link table-action">Activate</button>
+          {% endif %}
+            </form>
+            <form method="post" action="{% url 'webapp:account_remove' account.pk %}" data-confirmation-form data-confirmation-title="Remove this account?" data-confirmation-message="This permanently deletes the account, its Google connections, and its inquiry history. This cannot be undone." data-confirmation-action-label="Remove account">
+              {% csrf_token %}
+              <button type="submit" class="link table-action">Remove</button>
+            </form>
+            {% endif %}
+        </div>
+      </td>
+    </tr>
+  {% empty %}
+    <tr>
+      <td colspan="6" class="muted">
+        No {% if selected_role == 'buyer' %}regular user{% else %}admin{% endif %} accounts{% if search_query %} match your search{% else %} registered yet{% endif %}.
+      </td>
+    </tr>
+  {% endfor %}
+</tbody>

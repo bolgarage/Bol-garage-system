@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}Bol Garage | Contact{% endblock %}
+
+{% block content %}
+  <section class="page-title contact-title">
+    <div class="container">
+      <h1 class="display">Contact Bol Garage</h1>
+      <p>Get in touch about a car, plan a visit, or talk to us about selling your vehicle.</p>
+    </div>
+  </section>
+
+  <section class="contact-section">
+    <div class="container">
+      <div class="contact-content">
+        <div class="contact-left-column">
+          <section class="contact-detail-card">
+            <h2 class="display contact-card-title">Contact information</h2>
+            <div class="contact-info-item">
+              <span class="contact-detail-label">Email</span>
+              <a href="mailto:bolgarage123@gmail.com">bolgarage123@gmail.com</a>
+            </div>
+            <div class="contact-info-item">
+              <span class="contact-detail-label">Address</span>
+              <p>Holiday Homes, Biclatan, General Trias, Cavite</p>
+              <a class="link" href="https://www.google.com/maps/search/?api=1&amp;query=Holiday+Homes+Biclatan+General+Trias+Cavite" target="_blank" rel="noopener noreferrer">Get directions</a>
+            </div>
+            <div class="contact-info-item">
+              <span class="contact-detail-label">Contact number</span>
+              <a href="tel:09365241396">09365241396</a>
+            </div>
+            <div class="contact-info-item">
+              <span class="contact-detail-label">Facebook</span>
+              <a href="https://www.facebook.com/kuyabolcute/" target="_blank" rel="noopener noreferrer">Visit our Facebook page</a>
+            </div>
+          </section>
+          <section class="contact-detail-card">
+            <h2 class="display contact-card-title">Office hours</h2>
+            <div class="contact-hours-row"><span>Monday–Friday</span><strong>9:00 AM–8:00 PM</strong></div>
+            <div class="contact-hours-row"><span>Saturday–Sunday</span><strong>9:00 AM–5:00 PM</strong></div>
+          </section>
+          <div class="contact-map-card">
+            <iframe
+              title="Map showing Bol Garage in Biclatan, General Trias, Cavite"
+              src="https://maps.google.com/maps?q=Holiday%20Homes%20Biclatan%20General%20Trias%20Cavite&amp;output=embed"
+              loading="lazy"
+              referrerpolicy="no-referrer-when-downgrade"
+              allowfullscreen>
+            </iframe>
+          </div>
+        </div>
+
+        <section class="contact-form-card">
+          <h2 class="display">Send us a message</h2>
+          <form method="post" action="{% url 'webapp:contact' %}" novalidate>
+            {% csrf_token %}
+            <div class="contact-form-grid">
+              <div class="contact-field">
+                <label for="{{ form.name.id_for_label }}">Name</label>
+                {{ form.name }}
+                {% if form.name.errors %}<ul class="errorlist" role="alert">{% for error in form.name.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+              </div>
+              <div class="contact-field">
+                <label for="{{ form.phone.id_for_label }}">Mobile number</label>
+                {{ form.phone }}
+                {% if form.phone.errors %}<ul class="errorlist" role="alert">{% for error in form.phone.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+              </div>
+              <div class="contact-field contact-field-full">
+                <label for="{{ form.email.id_for_label }}">Email (optional)</label>
+                {{ form.email }}
+                {% if form.email.errors %}<ul class="errorlist" role="alert">{% for error in form.email.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+              </div>
+              <div class="contact-field contact-field-full">
+                <label for="{{ form.topic.id_for_label }}">What is this about?</label>
+                {{ form.topic }}
+                {% if form.topic.errors %}<ul class="errorlist" role="alert">{% for error in form.topic.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+              </div>
+              <div class="contact-field contact-field-full contact-message-field">
+                <label for="{{ form.message.id_for_label }}">Message</label>
+                {{ form.message }}
+                {% if form.message.errors %}<ul class="errorlist" role="alert">{% for error in form.message.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+              </div>
+            </div>
+            {% if form.non_field_errors %}<ul class="errorlist" role="alert">{% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+            <button type="submit" class="btn btn-primary btn-block">Send message</button>
+          </form>
+        </section>
+      </div>
+    </div>
+  </section>
+{% endblock %}

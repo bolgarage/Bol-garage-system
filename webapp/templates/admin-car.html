@@ -1,0 +1,397 @@
+{% extends "garage/base.html" %}
+{% load static humanize %}
+
+{% block title %}{{ car }} | Purchases, expenses, sales{% endblock %}
+
+{% block garage_content %}
+  <a href="{% url 'webapp:inventory' %}" class="link" style="font-size: 14px;">Back to cars and inventory</a>
+
+  <div class="admin-head car-financials-head" style="align-items: center; margin-top: 8px;">
+    <div>
+      <h1 class="display">{{ car }}</h1>
+      <p>{{ car.year }} · {{ car.mileage|intcomma }} km · {{ car.get_transmission_display }} · {{ car.get_fuel_display }} · In stock {{ car.days_in_stock }} days</p>
+    </div>
+    <div class="car-financials-actions">
+      <span class="pill {% if car.status == 'repair' %}pill-under-repair{% else %}pill-{{ car.status }}{% endif %} badge-lg">{{ car.get_status_display }}</span>
+      <a href="{% url 'webapp:car_financials_pdf' car.pk %}" class="btn btn-outline btn-small">Export to PDF</a>
+    </div>
+  </div>
+
+  {% if car.status == 'sold' %}
+    <div class="site-message site-message-warning sold-car-warning" role="alert">
+      This car is sold. Changes to its purchase, expenses, or sale will change its recorded final profit.
+    </div>
+  {% endif %}
+
+  <section class="panel stack-gap">
+    <h2 class="display">Status</h2>
+    <p class="panel-note">
+      {% if car.status == 'incoming' %}Hidden from the public site. The car has been bought but is not at the garage yet.
+      {% elif car.status == 'repair' %}Hidden from the public site while work is being done.
+      {% elif car.status == 'available' %}Shown on the public site. Buyers can send inquiries.
+      {% elif car.status == 'reserved' %}Shown on the public site with a Reserved tag. New inquiries are still possible.
+      {% else %}Removed from available cars and shown under Recently sold.{% endif %}
+    </p>
+    <form method="post" class="steps chips">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="status">
+      {% for value, label in status_choices %}
+        <button type="submit" name="status" value="{{ value }}" class="chip{% if car.status == value %} is-active{% endif %}"{% if car.status == value %} aria-current="step"{% endif %}{% if value == 'sold' and not has_sale or has_sale and value != 'sold' or value == 'available' and car.asking_price <= 0 %} disabled{% endif %}>{{ label }}</button>
+      {% endfor %}
+    </form>
+    {% if not has_sale %}<p class="panel-note" style="margin: 12px 0 0;">Record the Sale before setting this car to Sold.</p>{% endif %}
+    {% if car.asking_price <= 0 %}<p class="panel-note" style="margin: 12px 0 0;">Enter an asking price before setting this car to Available.</p>{% endif %}
+  </section>
+
+  <div class="cols">
+    <div class="col-main">
+      <section class="panel">
+        <h2 class="display" style="margin-bottom: 16px;">Purchase</h2>
+        {% if purchase %}
+          <div class="facts">
+            <div class="fact"><div class="k">Bought from</div><div class="v">{{ purchase.seller_name }}</div></div>
+            <div class="fact"><div class="k">Seller contact</div><div class="v">{{ purchase.seller_contact|default:"Not provided" }}</div></div>
+            <div class="fact"><div class="k">Date bought</div><div class="v">{{ purchase.date_bought|date:"F j, Y" }}</div></div>
+            <div class="fact"><div class="k">Buying price</div><div class="v">₱{{ purchase.buying_price|floatformat:0|intcomma }}</div></div>
+            <div class="fact"><div class="k">Plate number</div><div class="v">{{ car.plate_number|default:"Not provided" }}</div></div>
+            <div class="fact"><div class="k">Engine and chassis no.</div><div class="v">{{ car.engine_number|default:"Not provided" }} · {{ car.chassis_number|default:"Not provided" }}</div></div>
+          </div>
+          {% if purchase.notes %}<p class="panel-note" style="margin: 16px 0 0;">{{ purchase.notes|linebreaksbr }}</p>{% endif %}
+        {% else %}
+          <p class="muted">Purchase details have not been recorded.</p>
+        {% endif %}
+        <details class="garage-record-form"{% if not purchase %} open{% endif %}>
+          <summary>{% if purchase %}Edit purchase details{% else %}Add purchase details{% endif %}</summary>
+          <form method="post" class="garage-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="purchase">
+            {% for field in purchase_form %}
+              <div class="field">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {{ field.errors }}
+              </div>
+            {% endfor %}
+            <button type="submit" class="btn btn-primary btn-small">Save purchase</button>
+          </form>
+        </details>
+      </section>
+
+      <section class="panel">
+        <div class="record-section-head expense-section-head">
+          <h2 class="display">Repairs and expenses</h2>
+          <button type="button" class="btn btn-outline btn-small" data-open-details="add-expense">Add expense</button>
+        </div>
+        <div style="overflow-x: auto;">
+          <div style="min-width: 660px;">
+            <div class="trow head cols-expense">
+              <div>Date</div><div>Item</div><div>Category</div><div>Receipt</div><div>Actions</div><div class="right">Amount</div>
+            </div>
+            {% for expense in expenses %}
+              <div class="trow cols-expense">
+                <div>{{ expense.date|date:"M j" }}</div>
+                <div><strong>{{ expense.description }}</strong></div>
+                <div>{{ expense.get_category_display }}</div>
+                <div>{% if expense.receipt %}<a class="link" href="{{ expense.receipt.url }}" data-receipt-preview data-receipt-alt="Receipt for {{ expense.description }}">View receipt</a>{% else %}<span class="muted">—</span>{% endif %}</div>
+                <div class="expense-actions">
+                  <button
+                    type="button"
+                    class="expense-edit"
+                    data-edit-expense
+                    data-expense-id="{{ expense.pk }}"
+                    data-expense-description="{{ expense.description }}"
+                    data-expense-category="{{ expense.category }}"
+                    data-expense-date="{{ expense.date|date:'Y-m-d' }}"
+                    data-expense-amount="{{ expense.amount }}"
+                    {% if expense.receipt %}data-expense-receipt-url="{{ expense.receipt.url }}"{% endif %}
+                  >Edit</button>
+                  <form method="post" action="{% url 'webapp:expense_delete' car.pk expense.pk %}" data-confirmation-form data-confirmation-title="Delete this expense?" data-confirmation-message="This will permanently remove this expense and its receipt, if one is attached. This cannot be undone.">
+                    {% csrf_token %}
+                    <button type="submit" class="expense-delete">Delete</button>
+                  </form>
+                </div>
+                <div class="right">₱{{ expense.amount|floatformat:0|intcomma }}</div>
+              </div>
+            {% empty %}
+              <p class="muted" style="padding: 16px 0; grid-column: 1 / -1;">No expenses recorded.</p>
+            {% endfor %}
+            <div class="trow cols-expense" style="border-bottom: 0; font-weight: 600;">
+              <div></div><div>Total expenses</div><div></div><div></div><div></div><div class="right">₱{{ expense_total|floatformat:0|intcomma }}</div>
+            </div>
+          </div>
+        </div>
+        <details id="add-expense" class="garage-record-form">
+          <summary>Add an expense</summary>
+          <form method="post" enctype="multipart/form-data" class="garage-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="expense">
+            {% for field in expense_form %}
+              <div class="field">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {{ field.errors }}
+              </div>
+            {% endfor %}
+            <button type="submit" class="btn btn-primary btn-small">Save expense</button>
+          </form>
+        </details>
+      </section>
+
+      <dialog class="expense-edit-dialog" id="expense-edit-dialog" aria-labelledby="expense-edit-title"{% if edit_expense_id %} data-open-on-load{% endif %}>
+        <form method="post" enctype="multipart/form-data" class="garage-form" id="expense-edit-form">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="edit_expense">
+          <input type="hidden" name="expense_id" value="{{ edit_expense_id|default:'' }}" id="expense-edit-id">
+          <div class="expense-edit-dialog-head">
+            <h2 class="display" id="expense-edit-title">{% if edit_expense %}Edit expense: {{ edit_expense.description }}{% else %}Edit expense{% endif %}</h2>
+            <button type="button" class="receipt-dialog-close expense-edit-close" aria-label="Close expense editor" data-expense-edit-close>&times;</button>
+          </div>
+          <p class="expense-edit-current-receipt" data-current-receipt{% if not edit_expense or not edit_expense.receipt %} hidden{% endif %}>
+            Current receipt: <a class="link" href="{% if edit_expense and edit_expense.receipt %}{{ edit_expense.receipt.url }}{% endif %}" data-current-receipt-link data-receipt-preview data-receipt-alt="Current expense receipt">View receipt</a>
+          </p>
+          {% for field in expense_edit_form %}
+            <div class="field">
+              <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+              {{ field }}
+              {{ field.errors }}
+            </div>
+          {% endfor %}
+          <div class="expense-edit-dialog-actions">
+            <button type="button" class="btn btn-outline btn-small" data-expense-edit-close>Cancel</button>
+            <button type="submit" class="btn btn-primary btn-small">Save changes</button>
+          </div>
+        </form>
+      </dialog>
+
+      <dialog class="expense-edit-dialog" id="payment-edit-dialog" aria-labelledby="payment-edit-title"{% if edit_payment_id %} data-open-on-load{% endif %}>
+        <form method="post" class="garage-form" id="payment-edit-form">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="edit_payment">
+          <input type="hidden" name="payment_id" value="{{ edit_payment_id|default:'' }}" id="payment-edit-id">
+          <div class="expense-edit-dialog-head">
+            <h2 class="display" id="payment-edit-title">Edit payment</h2>
+            <button type="button" class="receipt-dialog-close expense-edit-close" aria-label="Close payment editor" data-payment-edit-close>&times;</button>
+          </div>
+          <div class="garage-form-grid">
+            {% for field in payment_edit_form %}
+              <div class="field{% if field.name == 'notes' %} field-wide{% endif %}">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {{ field.errors }}
+              </div>
+            {% endfor %}
+          </div>
+          <div class="expense-edit-dialog-actions">
+            <button type="button" class="btn btn-outline btn-small" data-payment-edit-close>Cancel</button>
+            <button type="submit" class="btn btn-primary btn-small">Save changes</button>
+          </div>
+        </form>
+      </dialog>
+
+      <section class="panel transaction-preview">
+        <div class="record-section-head payment-section-head">
+          <div>
+            <h2 class="display">Reservation / downpayment</h2>
+            <p class="panel-note">Record each payment from the buyer. Create an acknowledgment receipt for any saved payment.</p>
+          </div>
+          <button type="button" class="btn btn-outline btn-small" data-open-details="add-payment">Add payment</button>
+        </div>
+        {% for payment in payments %}
+          <div class="payment-record">
+            <div class="payment-record-details">
+              <strong>{{ payment.buyer_name }}</strong>
+              <span>{{ payment.get_payment_type_display }} · ₱{{ payment.amount|floatformat:2|intcomma }}</span>
+              <span class="muted">{{ payment.date_received|date:"M j, Y" }} · {{ payment.payment_method }}{% if payment.reference_number %} · Ref: {{ payment.reference_number }}{% endif %}</span>
+            </div>
+            <div class="payment-record-actions">
+              <button
+                type="button"
+                class="expense-edit"
+                data-edit-payment
+                data-payment-id="{{ payment.pk }}"
+                data-payment-buyer="{{ payment.buyer_name }}"
+                data-payment-contact="{{ payment.buyer_contact }}"
+                data-payment-account="{{ payment.account_name }}"
+                data-payment-type="{{ payment.payment_type }}"
+                data-payment-amount="{{ payment.amount }}"
+                data-payment-date="{{ payment.date_received|date:'Y-m-d' }}"
+                data-payment-method="{{ payment.payment_method }}"
+                data-payment-reference="{{ payment.reference_number }}"
+                data-payment-notes="{{ payment.notes }}"
+              >Edit</button>
+              <a class="expense-edit" href="{% url 'webapp:car_payment_receipt_pdf' car.pk payment.pk %}">Acknowledgment receipt</a>
+              <form method="post" data-confirmation-form data-confirmation-title="Delete this payment?" data-confirmation-message="This will permanently remove this payment record.">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="delete_payment">
+                <input type="hidden" name="payment_id" value="{{ payment.pk }}">
+                <button type="submit" class="expense-delete">Delete</button>
+              </form>
+            </div>
+          </div>
+        {% empty %}
+          <p class="muted payment-empty">No reservation or downpayment records yet.</p>
+        {% endfor %}
+        <details id="add-payment" class="garage-record-form"{% if action == 'payment' and payment_form.errors %} open{% endif %}>
+          <summary>Record a reservation fee or downpayment</summary>
+          <form method="post" class="garage-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="payment">
+            <div class="garage-form-grid">
+              {% for field in payment_form %}
+                <div class="field{% if field.name == 'notes' %} field-wide{% endif %}">
+                  <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                  {{ field }}
+                  {{ field.errors }}
+                </div>
+              {% endfor %}
+            </div>
+            <button type="submit" class="btn btn-primary btn-small">Save payment</button>
+          </form>
+        </details>
+      </section>
+
+      <section class="panel">
+        <div class="record-section-head">
+          <h2 class="display">Sale</h2>
+          {% if sale %}
+            <a href="{% url 'webapp:car_sale_agreement_pdf' car.pk %}" class="btn btn-outline btn-small">Create sale agreement</a>
+          {% else %}
+            <button type="button" class="btn btn-outline btn-small transaction-document-action" disabled>Create sale agreement</button>
+          {% endif %}
+        </div>
+        {% if sale %}
+          <p class="panel-note">This agreement uses the saved sale details. A reservation or downpayment is not required, so it works for walk-in buyers too.</p>
+        {% else %}
+          <p class="panel-note">Save the buyer and sale details below to enable the agreement. A reservation or downpayment is not required.</p>
+        {% endif %}
+        {% if sale %}
+          <div class="facts sale-facts">
+            <div class="fact"><div class="k">Buyer</div><div class="v">{{ sale.buyer_name }}</div></div>
+            <div class="fact"><div class="k">Buyer address</div><div class="v">{{ sale.buyer_address|default:"Not provided" }}</div></div>
+            <div class="fact"><div class="k">Buyer contact</div><div class="v">{{ sale.buyer_contact|default:"Not provided" }}</div></div>
+            <div class="fact"><div class="k">Sale price</div><div class="v">₱{{ sale.sale_price|floatformat:0|intcomma }}</div></div>
+            <div class="fact"><div class="k">Date sold</div><div class="v">{{ sale.date_sold|date:"F j, Y" }}</div></div>
+          </div>
+          {% if sale.notes %}<p class="panel-note" style="margin: 16px 0 0;">{{ sale.notes|linebreaksbr }}</p>{% endif %}
+        {% else %}
+          <p class="muted">This car has not been sold yet. Record the buyer, sale price, and date here.</p>
+        {% endif %}
+        <p class="panel-note transaction-document-note">After it is signed, keep the sale agreement in the Documents section.</p>
+        <details class="garage-record-form"{% if not sale %} open{% endif %}>
+          <summary>{% if sale %}Edit sale details{% else %}Record a sale{% endif %}</summary>
+          <form method="post" class="garage-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="sale">
+            {% for field in sale_form %}
+            <div class="field{% if field.name == 'buyer_address' or field.name == 'notes' %} field-wide{% endif %}">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {{ field.errors }}
+              </div>
+            {% endfor %}
+            <button type="submit" class="btn btn-primary btn-small">Save sale</button>
+          </form>
+        </details>
+      </section>
+    </div>
+
+    <div class="col-side">
+      <section class="panel-dark">
+        <h2 class="display">{% if is_final_profit %}Final profit{% else %}Expected profit{% endif %}</h2>
+        <div class="profit-line"><span>{% if is_final_profit %}Sale price{% else %}Asking price{% endif %}</span><span>₱{{ profit_price|floatformat:0|intcomma }}</span></div>
+        <div class="profit-line"><span>Buying price</span><span>− ₱{{ purchase.buying_price|default:0|floatformat:0|intcomma }}</span></div>
+        <div class="profit-line"><span>Expenses</span><span>− ₱{{ expense_total|floatformat:0|intcomma }}</span></div>
+        <div class="profit-total">
+          <strong>Profit</strong>
+          <span class="profit-amount">₱{{ profit_amount|floatformat:0|intcomma }}</span>
+        </div>
+        <p style="margin-top: 8px; font-size: 13px; color: #aeb4ba;">Calculated automatically. It is never typed in by hand.</p>
+      </section>
+
+      <section class="panel">
+        <div class="record-section-head">
+          <h2 class="display">Documents</h2>
+          <button type="button" class="btn btn-outline btn-small" data-open-details="upload-document">Upload</button>
+        </div>
+        <p class="panel-note transaction-document-note">Upload signed sale agreements and signed copies of acknowledgment receipts here. Receipt PDFs for recorded payments can be downloaded from the payment list.</p>
+        {% for group in document_groups %}
+          <div class="list-row">
+            <div>
+              <div class="title">{{ group.label }}</div>
+              {% for document in group.documents %}
+                <div class="sub document-file-row">
+                  <a
+                    class="link"
+                    href="{{ document.file.url }}"
+                    {% if document.is_image %}data-receipt-preview data-receipt-alt="{{ group.label }} document"{% endif %}
+                  >{{ document.file.name|cut:"documents/" }}</a>
+                  <form
+                    method="post"
+                    action="{% url 'webapp:document_delete' car.pk document.pk %}"
+                    data-confirmation-form
+                    data-confirmation-title="Remove this document?"
+                    data-confirmation-message="This will permanently remove this uploaded document. This cannot be undone."
+                  >
+                    {% csrf_token %}
+                    <button type="submit" class="document-delete" aria-label="Remove {{ group.label }} document" title="Remove document">&times;</button>
+                  </form>
+                </div>
+              {% empty %}
+                <div class="sub">Not yet</div>
+              {% endfor %}
+            </div>
+            <span class="pill {% if group.documents %}pill-available{% else %}pill-reserved{% endif %}">{% if group.documents %}Uploaded{% else %}Missing{% endif %}</span>
+          </div>
+        {% endfor %}
+        <details id="upload-document" class="garage-record-form">
+          <summary>Upload a document</summary>
+          <form method="post" enctype="multipart/form-data" class="garage-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="document">
+            {% for field in document_form %}
+              <div class="field">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {{ field.errors }}
+              </div>
+            {% endfor %}
+            <button type="submit" class="btn btn-primary btn-small">Upload document</button>
+          </form>
+        </details>
+      </section>
+
+      <section class="panel">
+        <h2 class="display" style="margin-bottom: 8px;">Photos</h2>
+        <p class="panel-note">The first photo is the cover shown on the public site.</p>
+        <div class="photo-strip financial-photo-strip">
+          {% for photo in car.photos.all %}
+            <img class="photo{% if forloop.first %} cover{% endif %}" src="{{ photo.image.url }}" alt="{{ car }} photo {{ forloop.counter }}">
+          {% empty %}
+            <p class="muted">No photos uploaded.</p>
+          {% endfor %}
+        </div>
+        <a href="{% url 'webapp:car_edit' car.pk %}" class="link" style="display: inline-block; margin-top: 12px;">Manage car photos</a>
+      </section>
+    </div>
+  </div>
+
+  <dialog class="confirm-dialog" id="confirmation-dialog" aria-labelledby="confirmation-dialog-title" aria-describedby="confirmation-dialog-message">
+    <div class="confirm-dialog-content">
+      <h2 class="display" id="confirmation-dialog-title">Confirm deletion</h2>
+      <p id="confirmation-dialog-message"></p>
+      <div class="confirm-dialog-actions">
+        <button type="button" class="btn btn-outline btn-small" data-confirmation-cancel>Cancel</button>
+        <button type="button" class="btn btn-danger btn-small" data-confirmation-submit>Delete permanently</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog class="receipt-dialog" id="receipt-preview-dialog" aria-label="Image preview">
+    <button type="button" class="receipt-dialog-close" aria-label="Close image preview" data-receipt-close>&times;</button>
+    <img id="receipt-preview-image" alt="">
+  </dialog>
+{% endblock %}
+
+{% block extra_scripts %}
+  <script src="{% static 'js/admin-car.js' %}"></script>
+{% endblock %}

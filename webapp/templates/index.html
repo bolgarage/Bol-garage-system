@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% load static humanize %}
+
+{% block title %}Bol Garage | Home{% endblock %}
+
+{% block content %}
+  <section class="hero">
+    <div class="container">
+      <div class="hero-text">
+        <p class="eyebrow">Buy and sell used cars</p>
+        <h1 class="display">Good used cars.<br>Straight deals.</h1>
+        <p class="hero-lead">Browse the cars we have available right now, then send an inquiry. We will get back to you to set up a viewing at the garage.</p>
+        <div class="hero-actions">
+          <a href="{% url 'webapp:car_list' %}" class="btn btn-primary">Browse available cars</a>
+        </div>
+      </div>
+
+      <div class="owner-card">
+        <img src="{% static 'media/Bol.jpg' %}" alt="Bol, owner of Bol Garage">
+        <span class="owner-card-name">Bol</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <h2 class="section-title">How it works</h2>
+      <div class="row">
+        <div class="step">
+          <div class="step-num">01</div>
+          <h3>Browse</h3>
+          <p class="muted">See every car that is available right now, with photos, specs and the asking price.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">02</div>
+          <h3>Inquire</h3>
+          <p class="muted">Sign in, pick a car and send an inquiry. Ask to reserve it if you are serious about buying.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">03</div>
+          <h3>View and pay</h3>
+          <p class="muted">Visit the garage, check the car yourself, and settle the deal in cash.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top: 0;">
+    <div class="container">
+      <div class="section-head available-section-head">
+        <h2 class="section-title">Available now</h2>
+        <a href="{% url 'webapp:car_list' %}" class="link">See all available cars</a>
+      </div>
+      <div class="row">
+        {% for car in featured_cars %}
+          {% include "partials/car-card.html" with car=car %}
+        {% empty %}
+          <p class="muted">There are no cars available right now. Please check back soon.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-alt">
+    <div class="container">
+      <h2 class="section-title" style="margin-bottom: 8px;">Recently sold</h2>
+      <p class="muted" style="margin-bottom: 32px;">A look at the cars that already found a new owner.</p>
+      <div class="row">
+        {% for car in sold_cars %}
+          <div class="sold-card">
+            {% with photo=car.photos.all|first %}
+              {% if photo %}
+                <img class="photo sold-card-photo" src="{{ photo.image.url }}" alt="{{ car }}">
+              {% else %}
+                <div class="photo sold-card-photo" aria-label="No photo available"></div>
+              {% endif %}
+            {% endwith %}
+            <div>
+              <h3>{{ car }}</h3>
+              <p class="car-specs">{{ car.year }} · {{ car.get_transmission_display }} · {{ car.get_fuel_display }}</p>
+              <span class="pill pill-sold">Sold</span>
+            </div>
+          </div>
+        {% empty %}
+          <p class="muted">Recently sold cars will appear here.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <section class="seller-cta">
+    <div class="container">
+      <div class="seller-cta-card">
+        <h2 class="display">Want to sell your car?</h2>
+        <p>We buy vehicles and accept consignments. Get in touch with Bol Garage to discuss your car.</p>
+        <div class="seller-cta-actions">
+          <a href="{% url 'webapp:contact' %}" class="btn btn-dark">Sell your car</a>
+          <a href="https://www.facebook.com/kuyabolcute/" class="btn btn-outline" target="_blank" rel="noopener noreferrer">Message us on Facebook</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+{% endblock %}

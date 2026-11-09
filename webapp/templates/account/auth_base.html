@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}{% block account_title %}Account recovery{% endblock %} | Bol Garage{% endblock %}
+
+{% block content %}
+  <div class="account-recovery">
+    <section class="account-recovery-card">
+      <p class="account-recovery-label">Bol Garage account</p>
+      <h1 class="display">{% block account_heading %}{% endblock %}</h1>
+      <p class="account-recovery-intro">{% block account_intro %}{% endblock %}</p>
+      {% block account_content %}{% endblock %}
+    </section>
+  </div>
+{% endblock %}

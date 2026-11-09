@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% load static humanize %}
+
+{% block title %}Bol Garage | {{ car }}{% endblock %}
+
+{% block content %}
+  <div class="container">
+    <div class="breadcrumb">
+      <a href="{% url 'webapp:car_list' %}">Available cars</a> / {{ car }}
+    </div>
+
+    <div class="detail">
+      <div class="detail-left">
+        <section class="gallery">
+          {% with photo=car.photos.all|first %}
+            {% if photo %}
+              <img class="photo gallery-main" src="{{ photo.image.url }}" alt="{{ car }}">
+            {% else %}
+              <div class="photo gallery-main">Photos coming soon</div>
+            {% endif %}
+          {% endwith %}
+          {% if car.photos.count > 1 %}
+            <div class="thumbs">
+              {% for photo in car.photos.all %}
+                <img class="thumb-image" src="{{ photo.image.url }}" alt="{{ car }} photo {{ forloop.counter }}">
+              {% endfor %}
+            </div>
+          {% endif %}
+        </section>
+
+        {% if car.description %}
+          <section class="detail-about">
+            <h2 class="display h-md">About this car</h2>
+            <p>{{ car.description|linebreaksbr }}</p>
+          </section>
+        {% endif %}
+      </div>
+
+      <section class="detail-info">
+        <div class="detail-status">
+          <span class="pill pill-{{ car.status }}">{{ car.get_status_display }}</span>
+          <span class="muted" style="font-size: 14px;">Listed {{ car.created_at|date:"M j, Y" }}</span>
+        </div>
+        <h1 class="display">{{ car }}</h1>
+        <div class="detail-price">₱{{ car.asking_price|floatformat:0|intcomma }}</div>
+
+        <div class="box">
+          {% if car.status == 'available' %}
+            {% if user.is_authenticated %}
+              <h2 class="display">Interested in this car?</h2>
+              <p class="panel-note">Send a question or ask the garage to reserve this car for you.</p>
+              <form method="post" action="{% url 'webapp:submit_inquiry' car.pk %}">
+                {% csrf_token %}
+                {% if form.non_field_errors %}
+                  <div class="form-errors">{{ form.non_field_errors }}</div>
+                {% endif %}
+                <div class="field">
+                  <label for="{{ form.kind.id_for_label }}">Request</label>
+                  {{ form.kind }}
+                  {{ form.kind.errors }}
+                </div>
+                <div class="field">
+                  <label for="{{ form.message.id_for_label }}">Message to the garage</label>
+                  {{ form.message }}
+                  {{ form.message.errors }}
+                </div>
+                <button type="submit" class="btn btn-primary">Send request</button>
+              </form>
+            {% else %}
+              <h2 class="display">Interested in this car?</h2>
+              <p class="panel-note">Sign in or create an account to ask a question or request a reservation.</p>
+              <a href="{% url 'webapp:sign_in' %}?next={{ request.get_full_path|urlencode }}" class="btn btn-primary detail-auth-link">Sign in or sign up</a>
+            {% endif %}
+            <p class="small-note">Payment is in cash at the garage. Nothing is charged online.</p>
+          {% else %}
+            <h2 class="display">Currently reserved</h2>
+            <p class="muted">This car is on hold. Check back later or browse other available cars.</p>
+          {% endif %}
+        </div>
+
+        <h2 class="display h-sm">Specifications</h2>
+        <div class="spec-list">
+          <div class="spec-row"><span>Year</span><span>{{ car.year }}</span></div>
+          <div class="spec-row"><span>Mileage</span><span>{{ car.mileage }} km</span></div>
+          <div class="spec-row"><span>Transmission</span><span>{{ car.get_transmission_display }}</span></div>
+          <div class="spec-row"><span>Fuel</span><span>{{ car.get_fuel_display }}</span></div>
+          {% if car.color %}<div class="spec-row"><span>Color</span><span>{{ car.color }}</span></div>{% endif %}
+        </div>
+      </section>
+    </div>
+
+    {% if related_cars %}
+      <section style="padding-bottom: 64px;">
+        <h2 class="display h-md" style="margin-bottom: 20px;">More cars you may like</h2>
+        <div class="row">
+          {% for related in related_cars %}
+            {% include "partials/car-card.html" with car=related %}
+          {% endfor %}
+        </div>
+      </section>
+    {% endif %}
+  </div>
+{% endblock %}

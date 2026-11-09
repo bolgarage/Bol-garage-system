@@ -1,0 +1,55 @@
+{% extends "garage/base.html" %}
+
+{% block title %}{% if car %}Edit {{ car }}{% else %}Add a car{% endif %}{% endblock %}
+
+{% block garage_content %}
+  <a href="{% url 'webapp:inventory' %}" class="link" style="padding-top: 0;">Back to cars and inventory</a>
+  <div class="admin-head" style="margin-top: 8px;">
+    <div>
+      <h1 class="display">{% if car %}Edit car{% else %}Add a car{% endif %}</h1>
+      <p>Update the vehicle details used by the garage and public listings.</p>
+    </div>
+  </div>
+
+  {% if car.status == 'sold' %}
+    <div class="site-message site-message-warning sold-car-warning" role="alert">
+      This car is sold. Editing its details or photos may affect its historical listing and records.
+    </div>
+  {% endif %}
+
+  <form method="post" enctype="multipart/form-data" class="panel garage-form">
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="form-errors">{{ form.non_field_errors }}</div>{% endif %}
+    <div class="garage-form-grid">
+      {% for field in form %}
+        <div class="field{% if field.name == 'description' %} field-wide{% endif %}{% if field.name == 'status' %} field-status{% elif field.name == 'photos' %} field-photos{% endif %}">
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% if field.help_text %}<small class="field-help">{{ field.help_text }}</small>{% endif %}
+          {{ field.errors }}
+        </div>
+      {% endfor %}
+    </div>
+    <div class="btn-row">
+      <button type="submit" class="btn btn-primary">Save car</button>
+      <a href="{% url 'webapp:inventory' %}" class="btn btn-outline">Cancel</a>
+    </div>
+  </form>
+  {% if car and car.photos.exists %}
+    <section class="existing-car-photos panel">
+      <h2 class="display">Current photos</h2>
+      <p class="panel-note">Existing photos stay on the listing. New photos will be added after them.</p>
+      <div class="photo-strip">
+        {% for photo in car.photos.all %}
+          <div class="existing-car-photo">
+            <img class="photo" src="{{ photo.image.url }}" alt="{{ car }} photo {{ forloop.counter }}">
+            <form method="post" action="{% url 'webapp:car_photo_delete' car.pk photo.pk %}">
+              {% csrf_token %}
+              <button type="submit" class="photo-delete" aria-label="Remove photo {{ forloop.counter }}" title="Remove photo">&times;</button>
+            </form>
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+  {% endif %}
+{% endblock %}

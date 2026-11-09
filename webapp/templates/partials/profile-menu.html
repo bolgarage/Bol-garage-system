@@ -1,0 +1,35 @@
+<div class="profile-menu {{ profile_menu_class }}">
+  <button
+    type="button"
+    class="profile-avatar-button"
+    aria-label="Open profile menu for {{ user.get_full_name|default:user.username }}"
+    aria-haspopup="true"
+    aria-expanded="false"
+    aria-controls="{{ profile_menu_id }}"
+    data-profile-menu-toggle
+  >
+    {% if user.profile.avatar %}
+      <img class="profile-avatar-image" src="{{ user.profile.avatar.url }}" alt="">
+    {% else %}
+      {% with social_account=user.socialaccount_set.all|first %}
+        {% if social_account.get_avatar_url %}
+          <img class="profile-avatar-image" src="{{ social_account.get_avatar_url }}" alt="">
+        {% else %}
+          <span class="profile-avatar-initial" aria-hidden="true">{{ user.first_name|default:user.username|slice:":1"|upper }}</span>
+        {% endif %}
+      {% endwith %}
+    {% endif %}
+  </button>
+  <div class="profile-dropdown" id="{{ profile_menu_id }}" role="menu" hidden>
+    <div class="profile-dropdown-identity">
+      <strong>{{ user.get_full_name|default:user.username }}</strong>
+      {% if user.email %}<span>{{ user.email }}</span>{% endif %}
+    </div>
+    <div class="profile-dropdown-divider" role="separator"></div>
+    <a href="{% url 'webapp:account_settings' %}" role="menuitem">Settings</a>
+    <form method="post" action="{% url 'account_logout' %}">
+      {% csrf_token %}
+      <button type="submit" role="menuitem">Sign out</button>
+    </form>
+  </div>
+</div>

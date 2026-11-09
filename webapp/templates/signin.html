@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% load static socialaccount %}
+
+{% block title %}Bol Garage | Your account{% endblock %}
+
+{% block content %}
+  <div class="auth">
+    <section class="auth-side">
+      <h1 class="display">Your account</h1>
+      <p style="margin-bottom: 24px; color: #d6dce1;">With an account you can:</p>
+      <ul>
+        <li>Send inquiries on the cars you like</li>
+        <li>Ask to reserve a car</li>
+        <li>Follow the status of your requests</li>
+      </ul>
+    </section>
+
+    <section class="auth-form">
+      <div class="auth-tabs">
+        <button type="button" class="auth-tab{% if not show_signup %} is-active{% endif %}" id="tab-signin">Sign in</button>
+        <button type="button" class="auth-tab{% if show_signup %} is-active{% endif %}" id="tab-signup">Sign up</button>
+      </div>
+
+      <form id="form-signin"{% if show_signup %} class="hidden"{% endif %} method="post" action="{% url 'webapp:sign_in' %}">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ next }}">
+        {% if login_form.non_field_errors %}
+          <div class="form-errors">{{ login_form.non_field_errors }}</div>
+        {% endif %}
+        <div class="field">
+          <label for="{{ login_form.username.id_for_label }}">Email</label>
+          {{ login_form.username }}
+          {{ login_form.username.errors }}
+        </div>
+        <div class="field">
+          <label for="{{ login_form.password.id_for_label }}">Password</label>
+          <div class="password-input">
+            {{ login_form.password }}
+            <button type="button" class="password-toggle" data-password-toggle aria-controls="{{ login_form.password.id_for_label }}" aria-label="Show password" aria-pressed="false">Show</button>
+          </div>
+          {{ login_form.password.errors }}
+        </div>
+        <a class="password-reset-link" href="{% url 'account_reset_password' %}">Forgot password?</a>
+        <button type="submit" class="btn btn-primary btn-block">Sign in</button>
+        <div class="auth-divider"><span>or</span></div>
+        <a href="{% provider_login_url 'google' %}" class="google-signin-button">
+          <svg class="google-signin-icon" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+            <path fill="#4285F4" d="M43.6 24.5c0-1.4-.1-2.8-.4-4.1H24v7.8h11c-.5 2.5-1.9 4.6-4.1 6v5h6.6c3.9-3.6 6.1-8.8 6.1-14.7z"/>
+            <path fill="#34A853" d="M24 44c5.5 0 10.1-1.8 13.5-4.9l-6.6-5c-1.8 1.2-4.1 2-6.9 2-5.3 0-9.8-3.6-11.4-8.4H5.8v5.2C9.2 39.5 16 44 24 44z"/>
+            <path fill="#FBBC05" d="M12.6 27.7c-.4-1.2-.7-2.4-.7-3.7s.2-2.5.7-3.7v-5.2H5.8C4.4 18 3.5 20.9 3.5 24s.9 6 2.3 8.9z"/>
+            <path fill="#EA4335" d="M24 11.9c3 0 5.7 1 7.8 3.1l5.8-5.8C34.1 5.9 29.5 4 24 4 16 4 9.2 8.5 5.8 15.1l6.8 5.2c1.6-4.8 6.1-8.4 11.4-8.4z"/>
+          </svg>
+          Continue with Google
+        </a>
+      </form>
+
+      <form id="form-signup"{% if not show_signup %} class="hidden"{% endif %} method="post" action="{% url 'webapp:sign_up' %}">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ next }}">
+        {% if signup_form.non_field_errors %}
+          <div class="form-errors">{{ signup_form.non_field_errors }}</div>
+        {% endif %}
+        <div class="field">
+          <label for="{{ signup_form.full_name.id_for_label }}">Full name</label>
+          {{ signup_form.full_name }}
+          {{ signup_form.full_name.errors }}
+        </div>
+        <div class="field">
+          <label for="{{ signup_form.email.id_for_label }}">Email</label>
+          {{ signup_form.email }}
+          {{ signup_form.email.errors }}
+        </div>
+        <div class="field">
+          <label for="{{ signup_form.phone.id_for_label }}">Mobile number</label>
+          {{ signup_form.phone }}
+          {{ signup_form.phone.errors }}
+        </div>
+        <div class="field">
+          <label for="{{ signup_form.password1.id_for_label }}">Password</label>
+          <div class="password-input">
+            {{ signup_form.password1 }}
+            <button type="button" class="password-toggle" data-password-toggle aria-controls="{{ signup_form.password1.id_for_label }}" aria-label="Show password" aria-pressed="false">Show</button>
+          </div>
+          {{ signup_form.password1.errors }}
+        </div>
+        <div class="field">
+          <label for="{{ signup_form.password2.id_for_label }}">Confirm password</label>
+          <div class="password-input">
+            {{ signup_form.password2 }}
+            <button type="button" class="password-toggle" data-password-toggle aria-controls="{{ signup_form.password2.id_for_label }}" aria-label="Show password" aria-pressed="false">Show</button>
+          </div>
+          {{ signup_form.password2.errors }}
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Create account</button>
+      </form>
+    </section>
+  </div>
+{% endblock %}
+
+{% block extra_scripts %}
+  <script src="{% static 'js/signin.js' %}?v=3"></script>
+{% endblock %}

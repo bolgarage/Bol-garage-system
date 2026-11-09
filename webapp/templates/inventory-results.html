@@ -1,0 +1,29 @@
+{% load humanize %}
+<tbody id="inventory-results">
+  {% for car in cars %}
+    <tr>
+      <td>
+        <strong>{{ car }}</strong>
+        {% if car.plate_number %}<div class="muted">{{ car.plate_number }}</div>{% endif %}
+      </td>
+      <td><span class="pill {% if car.status == 'repair' %}pill-under-repair{% else %}pill-{{ car.status }}{% endif %}">{{ car.get_status_display }}</span></td>
+      <td>₱{{ car.buying_price|floatformat:0|intcomma }}</td>
+      <td>₱{{ car.garage_expenses|floatformat:0|intcomma }}</td>
+      <td>₱{{ car.garage_total_cost|floatformat:0|intcomma }}</td>
+      <td>₱{{ car.asking_price|floatformat:0|intcomma }}</td>
+      <td>{{ car.days_in_stock }}</td>
+      <td>
+        <div class="inventory-actions">
+          <a href="{% url 'webapp:car_financials' car.pk %}" class="link table-action">Purchases, expenses, sales</a>
+          <a href="{% url 'webapp:car_edit' car.pk %}" class="link table-action">Edit</a>
+          <form method="post" action="{% url 'webapp:car_delete' car.pk %}" class="inventory-delete-form" data-confirmation-form data-confirmation-title="Delete this car?" data-confirmation-message="This permanently deletes {{ car|escape }} and its purchase, expenses, sale, documents, photos, and inquiries. This cannot be undone.">
+            {% csrf_token %}
+            <button type="submit" class="expense-delete">Delete</button>
+          </form>
+        </div>
+      </td>
+    </tr>
+  {% empty %}
+    <tr><td colspan="8" class="muted">No cars found. Add a car to start tracking your inventory.</td></tr>
+  {% endfor %}
+</tbody>

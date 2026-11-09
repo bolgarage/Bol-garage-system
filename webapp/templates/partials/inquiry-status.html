@@ -1,0 +1,44 @@
+<button type="button" class="inquiry-status-trigger" aria-label="My inquiries" title="My inquiries" aria-haspopup="dialog" aria-controls="inquiry-status-dialog" data-inquiry-status-open>
+  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+    <path d="M4 5.5h16v12H9l-5 3v-15Z"></path>
+    <path d="M8 10h8M8 14h5"></path>
+  </svg>
+  {% if user_inquiries %}
+    <span class="inquiry-status-count" aria-label="{{ user_inquiries|length }} open inquiries">{{ user_inquiries|length }}</span>
+  {% endif %}
+</button>
+<dialog class="inquiry-status-dialog" id="inquiry-status-dialog" aria-labelledby="inquiry-status-title" data-inquiry-status-dialog>
+  <div class="inquiry-status-dialog-head">
+    <div>
+      <p class="eyebrow">Your activity</p>
+      <h2 class="display" id="inquiry-status-title">My inquiries</h2>
+    </div>
+    <button type="button" class="inquiry-status-close" aria-label="Close inquiries" data-inquiry-status-close>&times;</button>
+  </div>
+  <div class="inquiry-status-list">
+    {% for inquiry in user_inquiries %}
+      <article class="inquiry-status-item">
+        <div class="inquiry-status-item-main">
+          <a class="inquiry-status-car" href="{% url 'webapp:car_detail' inquiry.car_id %}">{{ inquiry.car }}</a>
+          <p>{{ inquiry.get_kind_display }} · {{ inquiry.created_at|date:"M j, Y" }}</p>
+        </div>
+        <div class="inquiry-status-item-actions">
+          {% if inquiry.status == 'contacted' %}
+            <span class="inquiry-status-pill is-contacted">Contacted</span>
+          {% else %}
+            <span class="inquiry-status-pill is-pending">Pending</span>
+          {% endif %}
+          <form method="post" action="{% url 'webapp:cancel_inquiry' inquiry.pk %}" data-confirmation-form data-confirmation-title="Cancel this inquiry?" data-confirmation-message="This will mark your inquiry as cancelled. The garage can still see the cancellation. If this is a reservation request, the car's availability will not change automatically.">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <button type="submit" class="inquiry-cancel-button">Cancel inquiry</button>
+          </form>
+        </div>
+      </article>
+    {% empty %}
+      <p class="inquiry-status-empty">You haven’t sent any inquiries yet.</p>
+    {% endfor %}
+  </div>
+  <p class="inquiry-status-note">Only open inquiries are shown. Contacted means the garage has replied to you by email. Cancelled inquiries remain visible to the garage.</p>
+</dialog>
+{% include "partials/confirmation-dialog.html" %}

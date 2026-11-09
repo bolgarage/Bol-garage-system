@@ -1,0 +1,60 @@
+{% extends "garage/base.html" %}
+{% load static %}
+
+{% block title %}People{% endblock %}
+
+{% block garage_content %}
+  <div class="admin-head">
+    <div>
+      <h1 class="display">People</h1>
+      <p>Manage regular user and admin accounts.</p>
+    </div>
+    <a href="{% url 'webapp:account_add' %}" class="btn btn-primary btn-small" style="padding: 12px 24px;">Add an account</a>
+  </div>
+
+  <nav class="people-tabs" aria-label="Account types">
+    <a href="{% url 'webapp:people' %}?role=buyer"{% if selected_role == 'buyer' %} class="is-active"{% endif %}>Regular users</a>
+    <a href="{% url 'webapp:people' %}?role=admin"{% if selected_role == 'admin' %} class="is-active"{% endif %}>Admins</a>
+  </nav>
+
+  <form class="garage-toolbar" method="get" data-live-search>
+    <input type="hidden" name="role" value="{{ selected_role }}">
+    <label class="sr-only" for="people-search">Search accounts</label>
+    <input id="people-search" name="q" type="search" value="{{ search_query }}" placeholder="Search name, email or phone">
+    <a href="{% url 'webapp:people' %}?role={{ selected_role }}" class="btn btn-outline btn-small">Clear</a>
+    <a href="{% url 'webapp:people' %}?export=pdf&amp;role={{ selected_role }}{% if search_query %}&amp;q={{ search_query|urlencode }}{% endif %}" class="btn btn-outline btn-small" data-people-export>Export to PDF</a>
+  </form>
+  <p class="small-note" id="people-search-error" role="status" hidden></p>
+
+  <div class="table-wrap people-list-wrap">
+    <table class="garage-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Phone</th>
+          <th>Account status</th>
+          <th>Joined</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      {% include "people-results.html" %}
+    </table>
+  </div>
+  <p class="small-note" id="people-account-count">{{ account_count }} account{{ account_count|pluralize }} shown.</p>
+
+  <dialog class="confirm-dialog" id="confirmation-dialog" aria-labelledby="confirmation-dialog-title" aria-describedby="confirmation-dialog-message">
+    <div class="confirm-dialog-content">
+      <h2 class="display" id="confirmation-dialog-title">Confirm account change</h2>
+      <p id="confirmation-dialog-message"></p>
+      <div class="confirm-dialog-actions">
+        <button type="button" class="btn btn-outline btn-small" data-confirmation-cancel>Cancel</button>
+        <button type="button" class="btn btn-danger btn-small" data-confirmation-submit>Confirm</button>
+      </div>
+    </div>
+  </dialog>
+{% endblock %}
+
+{% block extra_scripts %}
+  <script src="{% static 'js/people-filters.js' %}"></script>
+{% endblock %}

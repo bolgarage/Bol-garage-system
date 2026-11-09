@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Bol Garage | Settings{% endblock %}
+
+{% block content %}
+  <section class="account-settings container">
+    <header class="account-settings-heading">
+      <p class="eyebrow">Your account</p>
+      <h1 class="display">Settings</h1>
+      <p class="muted">Manage your profile details and account.</p>
+    </header>
+
+    <section class="account-settings-card" aria-labelledby="profile-settings-title">
+      <div class="settings-section-heading">
+        <h2 id="profile-settings-title" class="display">Profile</h2>
+        <p>Update the details associated with your account.</p>
+      </div>
+
+      <form method="post" action="{% url 'webapp:account_settings' %}" class="settings-form" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+        <div class="settings-avatar-area">
+          <label class="settings-avatar-upload" for="{{ form.avatar.id_for_label }}" aria-label="Change profile photo">
+            <img
+              class="settings-avatar-image"
+              data-avatar-preview
+              {% if profile_avatar %}src="{{ profile_avatar }}"{% else %}hidden{% endif %}
+              {% if google_avatar_url %}data-google-avatar="{{ google_avatar_url }}"{% endif %}
+              alt=""
+              aria-hidden="true"
+            >
+            <span class="settings-avatar-initial" data-avatar-initial {% if profile_avatar %}hidden{% endif %} aria-hidden="true">{{ user.first_name|default:user.username|slice:":1"|upper }}</span>
+            {{ form.avatar }}
+            <span class="settings-avatar-camera" aria-hidden="true">
+              <svg viewBox="0 0 24 24" focusable="false">
+                <path d="M4 7h3l1.5-2h7L17 7h3v12H4z"></path>
+                <circle cx="12" cy="13" r="3.5"></circle>
+              </svg>
+            </span>
+            <span class="sr-only">Choose a profile photo</span>
+          </label>
+          <div class="settings-avatar-help">
+            <p class="field-help">{{ form.avatar.help_text }}</p>
+            <p class="field-help" data-avatar-file-name role="status" hidden></p>
+            {% if user.profile.avatar %}
+              <label class="settings-avatar-clear" for="{{ form.clear_avatar.id_for_label }}">
+                {{ form.clear_avatar }}
+                Use Google photo or initial
+              </label>
+            {% endif %}
+          </div>
+          {% if form.avatar.errors %}
+            <ul class="errorlist" id="{{ form.avatar.auto_id }}_errors" role="alert">
+              {% for error in form.avatar.errors %}<li>{{ error }}</li>{% endfor %}
+            </ul>
+          {% endif %}
+        </div>
+
+        <div class="settings-form-grid">
+          {% for field in form %}
+            {% if field.name != "avatar" and field.name != "clear_avatar" %}
+              <div class="field">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}<p class="field-help">{{ field.help_text }}</p>{% endif %}
+                {% if field.errors %}
+                  <ul class="errorlist" id="{{ field.auto_id }}_errors" role="alert">
+                    {% for error in field.errors %}<li>{{ error }}</li>{% endfor %}
+                  </ul>
+                {% endif %}
+              </div>
+            {% endif %}
+          {% endfor %}
+          <div class="field settings-email">
+            <label for="settings-email">Email</label>
+            <input id="settings-email" type="email" value="{{ user.email }}" readonly aria-describedby="settings-email-note">
+            <p class="field-help" id="settings-email-note">Email is tied to your Google login.</p>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Save profile</button>
+      </form>
+    </section>
+
+    <section class="account-settings-danger" aria-labelledby="delete-account-title">
+      <div>
+        <p class="danger-eyebrow">Danger zone</p>
+        <h2 id="delete-account-title" class="display">Delete account</h2>
+        <p>Deleting your account permanently removes your account and its data. This action cannot be undone.</p>
+      </div>
+      <form method="post" action="{% url 'webapp:account_delete' %}" class="delete-account-form" data-delete-account-form>
+        {% csrf_token %}
+        <div class="field">
+          <label for="delete-confirmation">Type DELETE to confirm</label>
+          <input
+            id="delete-confirmation"
+            name="confirmation"
+            type="text"
+            autocomplete="off"
+            aria-describedby="delete-confirmation-help"
+            required
+            data-delete-confirmation
+          >
+          <p class="field-help" id="delete-confirmation-help">The confirmation is case-sensitive.</p>
+        </div>
+        <button type="submit" class="btn btn-danger" disabled data-delete-account-submit>Delete my account</button>
+      </form>
+    </section>
+  </section>
+{% endblock %}
+
+{% block extra_scripts %}
+  <script src="{% static 'js/account-settings.js' %}"></script>
+{% endblock %}

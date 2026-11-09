@@ -1,0 +1,62 @@
+{% extends "garage/base.html" %}
+{% load static humanize %}
+
+{% block title %}Cars and inventory{% endblock %}
+
+{% block garage_content %}
+  <div class="admin-head">
+    <div>
+      <h1 class="display">Cars and inventory</h1>
+      <p>Manage every garage vehicle, from incoming to sold.</p>
+    </div>
+    <a href="{% url 'webapp:car_add' %}" class="btn btn-primary btn-small inventory-add-car" style="padding: 12px 24px;">Add a car</a>
+  </div>
+
+  <form class="garage-toolbar inventory-toolbar" method="get" data-inventory-search>
+    <label class="sr-only" for="q">Search inventory</label>
+    <input id="q" name="q" type="search" value="{{ search_query }}" placeholder="Search brand, model, plate or chassis">
+    <label class="sr-only" for="status">Filter by status</label>
+    <select id="status" name="status" data-submit-on-change>
+      <option value="">All statuses</option>
+      {% for value, label in status_choices %}
+        <option value="{{ value }}"{% if selected_status == value %} selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <a href="{% url 'webapp:inventory' %}" class="btn btn-outline btn-small">Clear</a>
+    <a href="{% url 'webapp:inventory' %}?export=pdf{% if search_query %}&amp;q={{ search_query|urlencode }}{% endif %}{% if selected_status %}&amp;status={{ selected_status|urlencode }}{% endif %}" class="btn btn-outline btn-small">Export to PDF</a>
+  </form>
+  <p class="small-note" id="inventory-search-error" role="status" hidden></p>
+
+  <div class="table-wrap inventory-table-wrap" role="region" aria-label="Car inventory" tabindex="0">
+    <table class="garage-table">
+      <thead>
+        <tr>
+          <th>Vehicle</th>
+          <th>Status</th>
+          <th>Buying price</th>
+          <th>Expenses</th>
+          <th>Total cost</th>
+          <th>Asking price</th>
+          <th>Days in stock</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      {% include "inventory-results.html" %}
+    </table>
+  </div>
+
+  <dialog class="confirm-dialog" id="confirmation-dialog" aria-labelledby="confirmation-dialog-title" aria-describedby="confirmation-dialog-message">
+    <div class="confirm-dialog-content">
+      <h2 class="display" id="confirmation-dialog-title">Confirm deletion</h2>
+      <p id="confirmation-dialog-message"></p>
+      <div class="confirm-dialog-actions">
+        <button type="button" class="btn btn-outline btn-small" data-confirmation-cancel>Cancel</button>
+        <button type="button" class="btn btn-danger btn-small" data-confirmation-submit>Delete permanently</button>
+      </div>
+    </div>
+  </dialog>
+{% endblock %}
+
+{% block extra_scripts %}
+  <script src="{% static 'js/inventory-filters.js' %}"></script>
+{% endblock %}

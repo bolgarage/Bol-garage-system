@@ -1,0 +1,37 @@
+{% extends "garage/base.html" %}
+
+{% block title %}{% if account %}Edit account{% else %}Add an account{% endif %}{% endblock %}
+
+{% block garage_content %}
+  <a href="{% url 'webapp:people' %}" class="link" style="padding-top: 0;">Back to people</a>
+  <div class="admin-head" style="margin-top: 8px;">
+    <div>
+      <h1 class="display">{% if account %}Edit account{% else %}Add an account{% endif %}</h1>
+      {% if account %}
+        <p>Update this account’s name, email, and phone number.</p>
+      {% else %}
+        <p>Create a regular user account or, if you are a superuser, an admin account.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <form method="post" class="panel garage-form">
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="form-errors">{{ form.non_field_errors }}</div>{% endif %}
+    {% for field in form %}
+      <div class="field">
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.help_text %}<small class="field-help">{{ field.help_text }}</small>{% endif %}
+        {{ field.errors }}
+      </div>
+    {% endfor %}
+    {% if not account and not can_create_admin %}
+      <p class="small-note">Only a superuser can create admin accounts. This account will be created as a regular user.</p>
+    {% endif %}
+    <div class="btn-row">
+      <button type="submit" class="btn btn-primary">{% if account %}Save changes{% else %}Create account{% endif %}</button>
+      <a href="{% url 'webapp:people' %}" class="btn btn-outline">Cancel</a>
+    </div>
+  </form>
+{% endblock %}

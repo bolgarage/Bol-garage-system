@@ -1,0 +1,62 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bol Garage | {% block title %}Garage management{% endblock %}</title>
+  <link rel="icon" type="image/png" href="{% static 'media/BG logo.png' %}">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=4">
+</head>
+<body>
+  <div class="admin">
+    <aside class="sidebar">
+      <div class="sidebar-head">
+        <a href="{% url 'webapp:dashboard' %}" class="brand">
+          <img src="{% static 'media/BG logo.png' %}" alt="" class="brand-logo">
+          <span>BOL GARAGE</span>
+        </a>
+        <button type="button" class="sidebar-menu-toggle" aria-label="Open garage menu" aria-controls="garage-navigation" aria-expanded="false">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </div>
+      <div class="sidebar-label">Garage management</div>
+      <nav id="garage-navigation">
+        <a href="{% url 'webapp:dashboard' %}"{% if request.resolver_match.url_name == 'dashboard' %} class="active"{% endif %}>Dashboard</a>
+        <a href="{% url 'webapp:inventory' %}"{% if request.resolver_match.url_name == 'inventory' or request.resolver_match.url_name == 'car_add' or request.resolver_match.url_name == 'car_edit' or request.resolver_match.url_name == 'car_financials' %} class="active"{% endif %}>Cars and inventory</a>
+        <a href="{% url 'webapp:inquiries' %}"{% if request.resolver_match.url_name == 'inquiries' %} class="active"{% endif %}>Inquiries</a>
+        <a href="{% url 'webapp:contact_messages' %}"{% if request.resolver_match.url_name == 'contact_messages' %} class="active"{% endif %}>Contact messages</a>
+        <a href="{% url 'webapp:people' %}"{% if request.resolver_match.url_name == 'people' or request.resolver_match.url_name == 'account_add' %} class="active"{% endif %}>People</a>
+      </nav>
+      <div class="sidebar-foot">
+        <a href="{% url 'webapp:public_home' %}">View public site</a>
+        <form method="post" action="{% url 'webapp:logout' %}">
+          {% csrf_token %}
+          <button type="submit" class="sidebar-signout">Sign out</button>
+        </form>
+      </div>
+    </aside>
+
+    <main class="admin-main">
+      {% if messages %}
+        <div class="site-messages" aria-live="polite">
+          {% for message in messages %}
+              <div class="site-message site-message-{{ message.tags|default:'info' }}" role="status">
+                <span>{{ message }}</span>
+                <button type="button" class="site-message-dismiss" aria-label="Dismiss notification">&times;</button>
+              </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+      {% block garage_content %}{% endblock %}
+    </main>
+  </div>
+  <script src="{% static 'js/notifications.js' %}"></script>
+  <script src="{% static 'js/garage-actions.js' %}"></script>
+  <script src="{% static 'js/garage-navigation.js' %}"></script>
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

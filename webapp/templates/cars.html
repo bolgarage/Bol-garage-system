@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% load static humanize %}
+
+{% block title %}Bol Garage | Available cars{% endblock %}
+
+{% block content %}
+  <section class="page-title">
+    <div class="container">
+      <h1 class="display">Available cars</h1>
+      <p>Browse cars available to view at the garage. Reserved cars are currently on hold.</p>
+    </div>
+  </section>
+
+  <div class="container shop">
+    <form class="filters" method="get">
+      <h2 class="display">Filter</h2>
+
+      <div class="field">
+        <label for="q">Search</label>
+        <input id="q" name="q" type="search" value="{{ request.GET.q }}" placeholder="Brand or model">
+      </div>
+
+      <div class="field">
+        <label for="brand">Brand</label>
+        <select id="brand" name="brand">
+          <option value="">All brands</option>
+          {% for brand in brands %}
+            <option value="{{ brand }}"{% if request.GET.brand == brand %} selected{% endif %}>{{ brand }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="transmission">Transmission</label>
+        <select id="transmission" name="transmission">
+          <option value="">Any</option>
+          <option value="automatic"{% if request.GET.transmission == 'automatic' %} selected{% endif %}>Automatic</option>
+          <option value="manual"{% if request.GET.transmission == 'manual' %} selected{% endif %}>Manual</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="price">Price range</label>
+        <select id="price" name="price">
+          <option value="">Any price</option>
+          {% for value, label in price_choices %}
+            <option value="{{ value }}"{% if request.GET.price == value %} selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="year">Year</label>
+        <select id="year" name="year">
+          <option value="">Any year</option>
+          <option value="2020-plus"{% if request.GET.year == '2020-plus' %} selected{% endif %}>2020 and newer</option>
+          <option value="2018-2019"{% if request.GET.year == '2018-2019' %} selected{% endif %}>2018 to 2019</option>
+          <option value="2017-minus"{% if request.GET.year == '2017-minus' %} selected{% endif %}>2017 and older</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="sort">Sort by</label>
+        <select id="sort" name="sort">
+          <option value="newest"{% if request.GET.sort == 'newest' or not request.GET.sort %} selected{% endif %}>Newest listed</option>
+          <option value="price-low"{% if request.GET.sort == 'price-low' %} selected{% endif %}>Price: low to high</option>
+          <option value="price-high"{% if request.GET.sort == 'price-high' %} selected{% endif %}>Price: high to low</option>
+          <option value="mileage"{% if request.GET.sort == 'mileage' %} selected{% endif %}>Lowest mileage</option>
+        </select>
+      </div>
+      <button type="submit" class="btn btn-dark btn-block">Apply filters</button>
+    </form>
+
+    <main class="shop-main">
+      <div class="shop-bar">
+        <strong>
+          {% if car_count %}
+            Showing {{ page_obj.start_index }}–{{ page_obj.end_index }} of {{ car_count }} car{{ car_count|pluralize }}
+          {% else %}
+            Showing 0 cars
+          {% endif %}
+        </strong>
+        <div class="shop-bar-actions">
+          <a href="{% url 'webapp:car_list' %}" class="link">Clear filters</a>
+        </div>
+      </div>
+
+      <div class="row">
+        {% for car in cars %}
+          {% include "partials/car-card.html" with car=car %}
+        {% empty %}
+          <p class="muted">No cars match those filters. Try changing your search or <a class="link" href="{% url 'webapp:car_list' %}">clear filters</a>.</p>
+        {% endfor %}
+      </div>
+      {% if page_obj.paginator.num_pages > 1 %}
+        <nav class="pagination" aria-label="Car listing pages">
+          {% if page_obj.has_previous %}
+            <a class="btn btn-outline" href="?{% if pagination_query %}{{ pagination_query }}&amp;{% endif %}page={{ page_obj.previous_page_number }}">Previous</a>
+          {% else %}
+            <span class="btn btn-outline" aria-disabled="true">Previous</span>
+          {% endif %}
+          <span class="pagination-label" aria-current="page">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+          {% if page_obj.has_next %}
+            <a class="btn btn-outline" href="?{% if pagination_query %}{{ pagination_query }}&amp;{% endif %}page={{ page_obj.next_page_number }}">Next</a>
+          {% else %}
+            <span class="btn btn-outline" aria-disabled="true">Next</span>
+          {% endif %}
+        </nav>
+      {% endif %}
+    </main>
+  </div>
+{% endblock %}

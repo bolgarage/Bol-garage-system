@@ -1,0 +1,77 @@
+{% extends "garage/base.html" %}
+
+{% block title %}Contact messages{% endblock %}
+
+{% block garage_content %}
+  <div class="admin-head">
+    <div>
+      <h1 class="display">Contact messages</h1>
+      <p>Messages submitted through the public Contact page.</p>
+    </div>
+  </div>
+
+  <nav class="inquiry-tabs" aria-label="Filter contact messages by category">
+    <a href="{% url 'webapp:contact_messages' %}"{% if not selected_topic %} class="is-active" aria-current="page"{% endif %}>All ({{ total_messages }})</a>
+    {% for value, label, count in topic_tabs %}
+      <a href="{% url 'webapp:contact_messages' %}?topic={{ value }}"{% if selected_topic == value %} class="is-active" aria-current="page"{% endif %}>{{ label }} ({{ count }})</a>
+    {% endfor %}
+  </nav>
+
+  <div class="inquiry-workspace">
+    <section class="inbox{% if contact_messages|length >= 5 %} inbox-scrollable{% endif %}" aria-label="Contact message list">
+      {% for contact_message in contact_messages %}
+        <a
+          class="inbox-item{% if selected_message.pk == contact_message.pk %} is-active{% endif %}"
+          href="{% url 'webapp:contact_messages' %}?{% if selected_topic %}topic={{ selected_topic }}&amp;{% endif %}message={{ contact_message.pk }}"
+          {% if selected_message.pk == contact_message.pk %}aria-current="page"{% endif %}
+        >
+          <span class="line1">
+            <span>{{ contact_message.name }}</span>
+            <span class="pill pill-new">{{ contact_message.get_topic_display }}</span>
+          </span>
+          <span class="line2">{{ contact_message.message|truncatechars:90 }}</span>
+          <span class="line3">{{ contact_message.created_at|date:"M j, Y, g:i a" }}</span>
+        </a>
+      {% empty %}
+        <p class="inquiry-empty-list">No contact messages yet.</p>
+      {% endfor %}
+    </section>
+
+    {% if selected_message %}
+      <article class="reader" aria-labelledby="selected-contact-message-title">
+        <div class="reader-top">
+          <div>
+            <h2 class="display" id="selected-contact-message-title">{{ selected_message.name }}</h2>
+            <p class="muted">
+              {{ selected_message.phone }}
+              {% if selected_message.email %} · <a href="{{ reply_compose_url }}" target="_blank" rel="noopener noreferrer">{{ selected_message.email }}</a>{% endif %}
+            </p>
+          </div>
+          <span class="pill pill-new">{{ selected_message.get_topic_display }}</span>
+        </div>
+
+        <p class="label">Received</p>
+        <p class="muted">{{ selected_message.created_at|date:"F j, Y, g:i a" }}</p>
+
+        <p class="label">Message</p>
+        <div class="message">{{ selected_message.message|linebreaksbr }}</div>
+
+        <div class="inquiry-actions">
+          {% if selected_message.email %}
+            <a class="btn btn-outline btn-small" href="{{ reply_compose_url }}" target="_blank" rel="noopener noreferrer">Reply by email</a>
+          {% endif %}
+          <form method="post" action="{% url 'webapp:contact_message_delete' selected_message.pk %}" data-confirmation-form data-confirmation-title="Delete this contact message?" data-confirmation-message="This permanently deletes this contact message. This cannot be undone.">
+            {% csrf_token %}
+            {% if selected_topic %}<input type="hidden" name="topic" value="{{ selected_topic }}">{% endif %}
+            <button type="submit" class="btn btn-danger btn-small">Delete message</button>
+          </form>
+        </div>
+      </article>
+    {% else %}
+      <section class="reader inquiry-reader-empty">
+        <p class="muted">Select a contact message to read its details.</p>
+      </section>
+    {% endif %}
+  </div>
+  {% include "partials/confirmation-dialog.html" %}
+{% endblock %}

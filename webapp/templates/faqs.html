@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Bol Garage | FAQs{% endblock %}
+
+{% block content %}
+  <section class="page-title">
+    <div class="container">
+      <h1 class="display">Frequently Asked Questions</h1>
+      <p>Helpful information for buying, selling, and visiting Bol Garage.</p>
+    </div>
+  </section>
+  <article class="container legal-page">
+    <section>
+      <h2>Buying</h2>
+      <details class="faq-item">
+        <summary>What do you sell?</summary>
+        <p>We mainly sell pre-owned cars and occasionally motorcycles. Check our <a href="https://www.facebook.com/kuyabolcute/" target="_blank" rel="noopener noreferrer">Facebook page</a> for the latest available units.</p>
+      </details>
+      <details class="faq-item">
+        <summary>How do I know if a unit is still available?</summary>
+        <p>Message us on Facebook, call <a href="tel:09365241396">09365241396</a>, or email <a href="mailto:bolgarage123@gmail.com">bolgarage123@gmail.com</a>. Posts may not always be updated right away, so please confirm first.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Can I see the unit before buying?</summary>
+        <p>Yes. Please schedule a visit at Holiday Homes, Biclatan, General Trias, Cavite. You may inspect it, test drive it with a valid license, and bring your own mechanic.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Can I reserve a unit?</summary>
+        <p>Yes. The reservation fee is at least ₱5,000, with the exact amount and holding period agreed between you and Bol Garage, usually for one day. The fee is refundable less any inconvenience deduction agreed and disclosed at payment. Please get a written acknowledgment or receipt.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Are your prices negotiable?</summary>
+        <p>Yes. Final pricing is confirmed after discussion and before you pay a reservation fee.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Do you offer financing?</summary>
+        <p>No. We currently accept cash, bank transfer, and GCash payments only.</p>
+      </details>
+      <details class="faq-item">
+        <summary>What payment methods do you accept?</summary>
+        <p>Cash, bank transfer, and GCash. Please pay only to the accounts we confirm with you directly, and always get a receipt or written acknowledgment.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Do the units come with a warranty?</summary>
+        <p>Units are sold “as is” unless we give a written warranty. We will share known condition and history before you buy.</p>
+      </details>
+      <details class="faq-item">
+        <summary>What documents will I receive?</summary>
+        <p>A Deed of Sale, the OR/CR, and a receipt for your payment.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Who handles the transfer of ownership?</summary>
+        <p>Bol Garage can assist with LTO transfer and registration renewal for a reasonable fee discussed before the service. You can also handle the process yourself. Registration and transfer costs are for the buyer unless agreed otherwise.</p>
+      </details>
+    </section>
+
+    <section>
+      <h2>Selling</h2>
+      <details class="faq-item">
+        <summary>Do you buy used vehicles?</summary>
+        <p>Yes. Send us the make, model, year, mileage, condition, and clear photos through Facebook or email. We’ll arrange an inspection and give you an offer.</p>
+      </details>
+      <details class="faq-item">
+        <summary>What do I need to bring when selling?</summary>
+        <p>The original OR/CR, a valid government ID, and the vehicle’s keys. If the vehicle is under a loan, we’ll need proof that it can be released.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Do you buy vehicles with unpaid loans or incomplete papers?</summary>
+        <p>Generally no. Vehicles must have clear ownership and complete documents.</p>
+      </details>
+      <details class="faq-item">
+        <summary>How do you decide my price?</summary>
+        <p>We base the offer on the vehicle’s condition, mileage, documents, and current market demand. The offer is confirmed after inspection.</p>
+      </details>
+      <details class="faq-item">
+        <summary>When do I get paid?</summary>
+        <p>Payment timing and method are confirmed with you before the vehicle is turned over and documented as part of the sale.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Can I consign my vehicle instead?</summary>
+        <p>Yes. Consignment arrangements are set out in a separate written agreement covering price, commission, and duration.</p>
+      </details>
+    </section>
+
+    <section>
+      <h2>General</h2>
+      <details class="faq-item">
+        <summary>Where are you located?</summary>
+        <p>Holiday Homes, Biclatan, General Trias, Cavite. See the <a href="{% url 'webapp:contact' %}">Contact page</a> for directions.</p>
+      </details>
+      <details class="faq-item">
+        <summary>What are your business hours?</summary>
+        <p>Monday–Friday, 9:00 AM–8:00 PM; Saturday–Sunday, 9:00 AM–5:00 PM. Please message first so we can be ready for your visit.</p>
+      </details>
+      <details class="faq-item">
+        <summary>How do I avoid scams?</summary>
+        <p>Deal only with our <a href="https://www.facebook.com/kuyabolcute/" target="_blank" rel="noopener noreferrer">official Facebook page</a> and the contact details on this site. Never send money to unknown accounts, and always get a receipt.</p>
+      </details>
+      <details class="faq-item">
+        <summary>How is my personal information handled?</summary>
+        <p>Please see our <a href="{% url 'webapp:privacy' %}">Privacy Policy</a>. We do not sell your personal information.</p>
+      </details>
+      <details class="faq-item">
+        <summary>How can I contact you?</summary>
+        <p>Email <a href="mailto:bolgarage123@gmail.com">bolgarage123@gmail.com</a>, call <a href="tel:09365241396">09365241396</a>, or message our <a href="https://www.facebook.com/kuyabolcute/" target="_blank" rel="noopener noreferrer">Facebook page</a>.</p>
+      </details>
+    </section>
+  </article>
+{% endblock %}

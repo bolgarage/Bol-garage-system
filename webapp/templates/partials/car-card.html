@@ -1,0 +1,28 @@
+{% load humanize %}
+
+<article class="car-card">
+  <div class="car-card-gallery" data-card-carousel>
+    <a class="car-card-image-link" href="{% url 'webapp:car_detail' car.pk %}" aria-label="View {{ car }}">
+      {% for photo in car.photos.all %}
+        <img class="photo car-card-image" src="{{ photo.image.url }}" alt="{{ car }} photo {{ forloop.counter }}"{% if not forloop.first %} hidden{% endif %}>
+      {% empty %}
+        <span class="photo car-card-image-placeholder">Photo coming soon</span>
+      {% endfor %}
+    </a>
+    {% if car.photos.count > 1 %}
+      <button type="button" class="car-card-arrow car-card-previous" aria-label="Previous photo">‹</button>
+      <button type="button" class="car-card-arrow car-card-next" aria-label="Next photo">›</button>
+      <span class="car-card-photo-count" aria-live="polite">1 / {{ car.photos.count }}</span>
+    {% endif %}
+  </div>
+  <a class="car-card-body-link" href="{% url 'webapp:car_detail' car.pk %}">
+    <div class="car-card-body">
+      <div class="car-card-top">
+        <h3>{{ car }}</h3>
+        <span class="pill pill-{% if car.status == 'repair' %}under-repair{% else %}{{ car.status }}{% endif %}">{{ car.get_status_display }}</span>
+      </div>
+      <p class="car-specs">{{ car.year }} · {{ car.mileage }} km · {{ car.get_transmission_display }} · {{ car.get_fuel_display }}</p>
+      <div class="car-price">₱{{ car.asking_price|floatformat:0|intcomma }}</div>
+    </div>
+  </a>
+</article>

@@ -1,0 +1,94 @@
+{% extends "garage/base.html" %}
+
+{% block title %}Inquiries{% endblock %}
+
+{% block garage_content %}
+  <div class="admin-head">
+    <div>
+      <h1 class="display">Inquiries</h1>
+      <p>Messages and reservation requests from buyers who are signed in.</p>
+    </div>
+  </div>
+
+  <nav class="inquiry-tabs" aria-label="Filter inquiries by status">
+    <a href="{% url 'webapp:inquiries' %}"{% if not selected_status %} class="is-active"{% endif %}>All ({{ total_inquiries }})</a>
+    {% for value, label, count in status_tabs %}
+      <a href="{% url 'webapp:inquiries' %}?status={{ value }}"{% if selected_status == value %} class="is-active"{% endif %}>{{ label }} ({{ count }})</a>
+    {% endfor %}
+  </nav>
+
+  <div class="inquiry-workspace">
+    <section class="inbox{% if inquiries|length >= 5 %} inbox-scrollable{% endif %}" aria-label="Inquiry list">
+      {% for inquiry in inquiries %}
+        <a
+          class="inbox-item{% if selected_inquiry.pk == inquiry.pk %} is-active{% endif %}"
+          href="{% url 'webapp:inquiries' %}?{% if selected_status %}status={{ selected_status }}&amp;{% endif %}inquiry={{ inquiry.pk }}"
+          {% if selected_inquiry.pk == inquiry.pk %}aria-current="page"{% endif %}
+        >
+          <span class="line1">
+            <span>{{ inquiry.buyer.get_full_name|default:inquiry.buyer.email }}</span>
+            <span class="pill pill-{{ inquiry.status }}">{{ inquiry.get_status_display }}</span>
+          </span>
+          <span class="line2">{{ inquiry.car }} · {{ inquiry.get_kind_display }}</span>
+          <span class="line3">{{ inquiry.created_at|timesince }} ago</span>
+        </a>
+      {% empty %}
+        <p class="inquiry-empty-list">No inquiries found{% if selected_status %} with this status{% endif %}.</p>
+      {% endfor %}
+    </section>
+
+    {% if selected_inquiry %}
+      <article class="reader" aria-labelledby="selected-inquiry-title">
+        <div class="reader-top">
+          <div>
+            <h2 class="display" id="selected-inquiry-title">{{ selected_inquiry.buyer.get_full_name|default:selected_inquiry.buyer.email }}</h2>
+            <p class="muted">
+              {{ selected_inquiry.buyer.email }}
+              {% if selected_inquiry.buyer.phone %} · {{ selected_inquiry.buyer.phone }}{% endif %}
+            </p>
+          </div>
+          <span class="pill pill-{{ selected_inquiry.status }}">{{ selected_inquiry.get_status_display }}</span>
+        </div>
+
+        <p class="label">About</p>
+        <p>
+          <a class="link inquiry-car-link" href="{% url 'webapp:car_financials' selected_inquiry.car.pk %}">{{ selected_inquiry.car }}</a>
+          <span class="muted">{{ selected_inquiry.get_kind_display }} · {{ selected_inquiry.created_at|timesince }} ago</span>
+        </p>
+
+        <p class="label">Message</p>
+        <div class="message">{{ selected_inquiry.message|linebreaksbr }}</div>
+
+        <p class="label">Set status</p>
+        <form method="post" action="{% url 'webapp:inquiry_status' selected_inquiry.pk %}" class="inquiry-status-buttons">
+          {% csrf_token %}
+          {% for value, label in status_choices %}
+            <button type="submit" name="status" value="{{ value }}"{% if selected_inquiry.status == value %} class="is-active" aria-current="true"{% endif %}>{{ label }}</button>
+          {% endfor %}
+        </form>
+
+        <div class="inquiry-actions">
+          {% if selected_inquiry.car.status == 'available' %}
+            <form method="post" action="{% url 'webapp:inquiry_reserve_car' selected_inquiry.pk %}">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-primary btn-small">Set car to Reserved</button>
+            </form>
+          {% elif selected_inquiry.car.status == 'reserved' %}
+            <span class="pill pill-reserved">Car is Reserved</span>
+          {% endif %}
+          <a class="btn btn-outline btn-small" href="{{ reply_compose_url }}" target="_blank" rel="noopener noreferrer">Reply by email</a>
+          <form method="post" action="{% url 'webapp:inquiry_delete' selected_inquiry.pk %}" data-confirmation-form data-confirmation-title="Delete this inquiry?" data-confirmation-message="This permanently deletes this inquiry. This cannot be undone.">
+            {% csrf_token %}
+            {% if selected_status %}<input type="hidden" name="status" value="{{ selected_status }}">{% endif %}
+            <button type="submit" class="btn btn-danger btn-small">Delete inquiry</button>
+          </form>
+        </div>
+      </article>
+    {% else %}
+      <section class="reader inquiry-reader-empty">
+        <p class="muted">Select an inquiry to read the buyer’s message and update its status.</p>
+      </section>
+    {% endif %}
+  </div>
+  {% include "partials/confirmation-dialog.html" %}
+{% endblock %}

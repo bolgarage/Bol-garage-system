@@ -1,0 +1,125 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Bol Garage{% endblock %}</title>
+  <link rel="icon" type="image/png" href="{% static 'media/BG logo.png' %}">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=12">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a href="{% if user.is_staff %}{% url 'webapp:public_home' %}{% else %}{% url 'webapp:home' %}{% endif %}" class="brand">
+        <img src="{% static 'media/BG logo.png' %}" alt="" class="brand-logo">
+        <span>BOL GARAGE</span>
+      </a>
+      {% if user.is_authenticated %}
+        <div class="header-actions">
+          {% include "partials/profile-menu.html" with profile_menu_id="mobile-profile-menu" profile_menu_class="mobile-profile-menu" %}
+          <button type="button" class="menu-toggle" aria-label="Open navigation menu" aria-controls="site-navigation" aria-expanded="false">
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+        </div>
+        <nav class="nav" id="site-navigation">
+          <a href="{% if user.is_staff %}{% url 'webapp:public_home' %}{% else %}{% url 'webapp:home' %}{% endif %}"{% if request.resolver_match.url_name == 'home' or request.resolver_match.url_name == 'public_home' %} class="active" aria-current="page"{% endif %}>Home</a>
+          {% if user.is_staff %}
+            <a href="{% url 'webapp:dashboard' %}"{% if request.resolver_match.url_name == 'dashboard' %} class="active" aria-current="page"{% endif %}>Garage dashboard</a>
+          {% endif %}
+          <a href="{% url 'webapp:car_list' %}"{% if request.resolver_match.url_name == 'car_list' or request.resolver_match.url_name == 'car_detail' %} class="active" aria-current="page"{% endif %}>Available cars</a>
+          <a href="{% url 'webapp:contact' %}"{% if request.resolver_match.url_name == 'contact' %} class="active" aria-current="page"{% endif %}>Contact</a>
+          {% include "partials/profile-menu.html" with profile_menu_id="desktop-profile-menu" profile_menu_class="desktop-profile-menu" %}
+        </nav>
+      {% else %}
+        {% include "partials/site-navigation.html" %}
+      {% endif %}
+    </div>
+  </header>
+
+  <main class="site-main">
+    {% if messages %}
+      <div class="container site-messages" aria-live="polite">
+        {% for message in messages %}
+          <div class="site-message site-message-{{ message.tags|default:'info' }}" role="status">
+            <span>{{ message }}</span>
+            <button type="button" class="site-message-dismiss" aria-label="Dismiss notification">&times;</button>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  {% if show_inquiry_status %}
+    {% include "partials/inquiry-status.html" %}
+  {% endif %}
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="site-footer-main">
+        <section class="site-footer-brand">
+          <a href="{% if user.is_staff %}{% url 'webapp:public_home' %}{% else %}{% url 'webapp:home' %}{% endif %}" class="site-footer-logo">
+            <img src="{% static 'media/BG logo.png' %}" alt="Bol Garage logo" class="site-footer-brand-logo">
+            <span>BOL GARAGE</span>
+          </a>
+          <p>Quality used cars, ready for their next journey.</p>
+        </section>
+
+        <nav class="site-footer-links" aria-label="Quick links">
+          <h2>Quick links</h2>
+          <a href="{% if user.is_staff %}{% url 'webapp:public_home' %}{% else %}{% url 'webapp:home' %}{% endif %}">Home</a>
+          <a href="{% url 'webapp:car_list' %}">Available cars</a>
+          <a href="{% url 'webapp:contact' %}">Contact</a>
+          {% if not user.is_authenticated %}
+            <a href="{% url 'webapp:sign_in' %}">Sign in</a>
+          {% endif %}
+        </nav>
+
+        <nav class="site-footer-links" aria-label="Help and legal">
+          <h2>Help &amp; legal</h2>
+          <a href="{% url 'webapp:faqs' %}">FAQs</a>
+          <a href="{% url 'webapp:terms' %}">Terms &amp; Conditions</a>
+          <a href="{% url 'webapp:privacy' %}">Privacy Policy</a>
+        </nav>
+
+        <section class="site-footer-contact">
+          <h2>Contact details</h2>
+          <a class="site-footer-contact-item" href="mailto:bolgarage123@gmail.com">
+            <svg class="site-footer-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18v14H3z"></path><path d="m3 6 9 7 9-7"></path></svg>
+            <span>bolgarage123@gmail.com</span>
+          </a>
+          <a class="site-footer-contact-item" href="tel:09365241396">
+            <svg class="site-footer-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10v18H7z"></path><path d="M10 6h4M11 18h2"></path></svg>
+            <span>09365241396</span>
+          </a>
+          <div class="site-footer-contact-item">
+            <svg class="site-footer-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"></path><circle cx="12" cy="10" r="2.5"></circle></svg>
+            <span>Holiday Homes, Biclatan,<br>General Trias, Cavite</span>
+          </div>
+          <a class="site-footer-contact-item" href="https://www.facebook.com/kuyabolcute/" target="_blank" rel="noopener noreferrer">
+            <svg class="site-footer-icon site-footer-icon-facebook" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 21v-8h3l.5-4H14V7c0-1.2.4-2 2-2h1.7V1.4C17 1.2 15.8 1 14.5 1 11.4 1 9.5 2.8 9.5 6.2V9H6v4h3.5v8Z"></path></svg>
+            <span>Facebook page</span>
+          </a>
+        </section>
+      </div>
+      <div class="site-footer-bottom">
+        <span>© {% now "Y" %} Bol Garage. All rights reserved.</span>
+      </div>
+    </div>
+  </footer>
+  <script src="{% static 'js/notifications.js' %}"></script>
+  <script src="{% static 'js/car-card-carousel.js' %}"></script>
+  <script src="{% static 'js/navigation.js' %}"></script>
+  <script src="{% static 'js/profile-menu.js' %}"></script>
+  <script src="{% static 'js/inquiry-status.js' %}"></script>
+  <script src="{% static 'js/garage-actions.js' %}"></script>
+  <script src="{% static 'js/password-toggle.js' %}"></script>
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

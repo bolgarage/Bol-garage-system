@@ -1,0 +1,14 @@
+<div class="header-actions">
+  <a href="{% url 'webapp:sign_in' %}" class="nav-cta mobile-header-auth">Sign in</a>
+  <button type="button" class="menu-toggle" aria-label="Open navigation menu" aria-controls="site-navigation" aria-expanded="false">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
+</div>
+<nav class="nav" id="site-navigation">
+  <a href="{% url 'webapp:home' %}"{% if request.resolver_match.url_name == 'home' %} class="active" aria-current="page"{% endif %}>Home</a>
+  <a href="{% url 'webapp:car_list' %}"{% if request.resolver_match.url_name == 'car_list' or request.resolver_match.url_name == 'car_detail' %} class="active" aria-current="page"{% endif %}>Available cars</a>
+  <a href="{% url 'webapp:contact' %}"{% if request.resolver_match.url_name == 'contact' %} class="active" aria-current="page"{% endif %}>Contact</a>
+  <a href="{% url 'webapp:sign_in' %}" class="nav-cta">Sign in</a>
+</nav>

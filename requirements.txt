@@ -1,0 +1,7 @@
+Django==6.1.2
+django-allauth[socialaccount]>=65.21,<66
+Pillow==13.0.0
+python-dotenv>=1.0,<2
+requests>=2.31,<3
+reportlab>=4.4,<5
+pypdf>=5,<7
