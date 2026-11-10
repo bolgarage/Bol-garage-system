@@ -8,3 +8,17 @@ db.sqlite3
 media/
 staticfiles/
 .vscode/
+
+# These public image and PDF assets are required by the deployed site.
+!media/
+media/*
+!media/cars/
+media/cars/*
+!media/cars/*.jpg
+!media/cars/*.webp
+!webapp/static/media/
+webapp/static/media/*
+!webapp/static/media/BG logo.png
+!webapp/static/media/Bol.jpg
+!webapp/static/media/Kuya Bol Garage (Acknowledgement Receipt).pdf
+!webapp/static/media/Kuya Bol Garage (Sale letter).pdf
