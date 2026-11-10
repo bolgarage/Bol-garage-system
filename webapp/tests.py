@@ -1099,7 +1099,10 @@ class PublicPagesTests(TestCase):
             for part in email_message.walk()
             if part.get_content_type() == 'multipart/related'
         )
+        self.assertEqual(related_body.get_param('type'), 'text/html')
+        self.assertEqual(related_body.get_param('start'), '<password-reset-html>')
         related_parts = list(related_body.iter_parts())
+        self.assertEqual(related_parts[0].get('Content-ID'), '<password-reset-html>')
         self.assertTrue(
             any(
                 attachment['Content-ID'] == '<bol-garage-logo>'

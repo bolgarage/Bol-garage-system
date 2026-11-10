@@ -42,6 +42,12 @@ class InlineLogoEmailMultiAlternatives(EmailMultiAlternatives):
             disposition='inline',
             filename='bol-garage-logo.png',
         )
+        related_root = next(
+            part for part in html_body.iter_parts() if part.get_content_type() == 'text/html'
+        )
+        related_root['Content-ID'] = '<password-reset-html>'
+        html_body.set_param('type', 'text/html', header='Content-Type')
+        html_body.set_param('start', '<password-reset-html>', header='Content-Type')
         return message
 
 

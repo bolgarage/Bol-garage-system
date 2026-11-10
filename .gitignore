@@ -19,6 +19,7 @@ media/cars/*
 !webapp/static/media/
 webapp/static/media/*
 !webapp/static/media/BG logo.png
+!webapp/static/media/favicon.png
 !webapp/static/media/Bol.jpg
 !webapp/static/media/Kuya Bol Garage (Acknowledgement Receipt).pdf
 !webapp/static/media/Kuya Bol Garage (Sale letter).pdf
