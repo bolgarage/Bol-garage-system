@@ -1080,6 +1080,8 @@ class PublicPagesTests(TestCase):
         )
         self.assertEqual(len(mail.outbox), 1)
         reset_email = mail.outbox[0]
+        self.assertTrue(reset_email.subject.startswith('[BOL Garage] '))
+        self.assertNotIn('example.com', reset_email.subject)
         self.assertIn('BOL Garage password reset', reset_email.subject)
         self.assertEqual(reset_email.to, [user.email])
         self.assertIn('BOL GARAGE', reset_email.body)
@@ -1091,12 +1093,18 @@ class PublicPagesTests(TestCase):
         self.assertIn('background-color:#f4f2ed', html_body)
         self.assertIn('margin:0 0 24px;text-align:center;', html_body)
         self.assertIn('/accounts/password/reset/key/', html_body)
+        email_message = reset_email.message()
+        related_body = next(
+            part
+            for part in email_message.walk()
+            if part.get_content_type() == 'multipart/related'
+        )
+        related_parts = list(related_body.iter_parts())
         self.assertTrue(
             any(
                 attachment['Content-ID'] == '<bol-garage-logo>'
                 and attachment.get_content_disposition() == 'inline'
-                for attachment in reset_email.attachments
-                if isinstance(attachment, MIMEPart)
+                for attachment in related_parts
             )
         )
     def test_password_reset_form_has_show_hide_controls(self):

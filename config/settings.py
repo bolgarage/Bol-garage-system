@@ -136,6 +136,7 @@ LOGIN_URL = 'webapp:sign_in'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = 'webapp:home'
 SITE_ID = 1
+ACCOUNT_EMAIL_SUBJECT_PREFIX = '[BOL Garage] '
 SOCIALACCOUNT_LOGIN_ON_GET = True
 SOCIALACCOUNT_AUTO_SIGNUP = True
 ACCOUNT_ADAPTER = 'webapp.adapters.GarageAccountAdapter'
